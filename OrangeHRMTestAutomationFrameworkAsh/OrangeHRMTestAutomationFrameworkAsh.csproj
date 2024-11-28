@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<GenerateTestResults>true</GenerateTestResults>
 
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -13,6 +14,7 @@
     <PackageReference Include="Bogus" Version="35.6.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
+    <PackageReference Include="ExtentReports" Version="5.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.0" />
@@ -26,6 +28,10 @@
     <PackageReference Include="Selenium.WebDriver" Version="4.26.1" />
   </ItemGroup>
 
+  <Target Name="CreateTestResultsFolder" AfterTargets="Build">
+	<MakeDir Directories="$(OutputPath)TestResults" />
+  </Target>
+
   <ItemGroup>
     <Using Include="NUnit.Framework" />
   </ItemGroup>
@@ -34,6 +40,12 @@
 	<None Update="appsettings.json">
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
+  </ItemGroup>
+
+  <ItemGroup>
+		<None Update="extent-config.xml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
   </ItemGroup>
 
 </Project>

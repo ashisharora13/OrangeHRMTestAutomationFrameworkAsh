@@ -1,0 +1,68 @@
+trigger: none
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  - group: OrangeHRM-Test-Variables
+  solution: 'C:\Users\prich\source\repos\OrangeHRMTestAutomationFrameworkAsh/OrangeHRMTestAutomationFrameworkAsh.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'
+  dotnetVersion: '8.0'
+
+stages:
+- stage: TestExecution
+  displayName: 'Run Automated Tests'
+  jobs:
+  - deployment: RunTests
+    environment: 'QA'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: UseDotNet@2
+            inputs:
+              version: $(dotnetVersion)
+              performMultiLevelLookup: true
+
+          - task: PowerShell@2
+            displayName: 'Install Chrome'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $Path = $env:TEMP; 
+                $Installer = "chrome_installer.exe"
+                Invoke-WebRequest "https://dl.google.com/chrome/install/latest/chrome_installer.exe" -OutFile $Path\$Installer
+                Start-Process -FilePath $Path\$Installer -Args "/silent /install" -Verb RunAs -Wait
+                Remove-Item $Path\$Installer
+
+          - task: FileTransform@1
+            inputs:
+              folderPath: '$(System.DefaultWorkingDirectory)/_OrangeHRM-CI/drop'
+              fileType: 'json'
+              targetFiles: '**/appsettings.json'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Run Regression Tests'
+            inputs:
+              command: 'test'
+              projects: '**/*[Tt]ests/*.csproj'
+              arguments: '--configuration $(buildConfiguration) --filter Category=Regression'
+              publishTestResults: true
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'VSTest'
+              testResultsFiles: '**/*.trx'
+              mergeTestResults: true
+              failTaskOnFailedTests: true
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Test Results and Logs'
+            condition: succeededOrFailed()
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'TestResults'
+              publishLocation: 'Container'

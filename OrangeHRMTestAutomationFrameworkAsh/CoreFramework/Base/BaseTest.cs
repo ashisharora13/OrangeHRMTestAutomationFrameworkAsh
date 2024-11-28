@@ -1,26 +1,28 @@
-﻿using Microsoft.Extensions.Configuration;
-using NUnit.Framework.Interfaces;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.Extensions;
+﻿using OpenQA.Selenium;
 using OrangeHRM.Automation.Framework.Core.Browser;
 using OrangeHRM.Automation.Framework.Core.Configuration;
-using OrangeHRM.Automation.Framework.Core.Reporting;
+using NUnit.Framework;
+using System;
+using System.IO;
+using OpenQA.Selenium.Support.UI;
 
 namespace OrangeHRM.Automation.Framework.Core.Base
 {
     public class BaseTest : IDisposable
     {
         protected IWebDriver Driver;
-        protected Configuration.ConfigurationManager Config = new Configuration.ConfigurationManager();
+        protected ConfigurationManager Config;
         protected string TestResultsPath;
-        protected TestReporter TestReporter;
-        protected BrowserFactory BrowserFactory;
 
         [OneTimeSetUp]
         public void GlobalSetup()
         {
             try
             {
+                // Initialize configuration
+                Config = new ConfigurationManager();
+
+                // Set up test results directory
                 TestResultsPath = Path.Combine(Directory.GetCurrentDirectory(), "TestResults");
                 if (!Directory.Exists(TestResultsPath))
                 {
@@ -29,7 +31,7 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to initialize configuration: {ex.Message}");
+                TestContext.Progress.WriteLine($"Failed to initialize configuration: {ex.Message}");
                 throw;
             }
         }
@@ -40,12 +42,11 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             try
             {
                 InitializeDriver();
-                TestReporter = new TestReporter(TestContext.CurrentContext.Test.Name, TestResultsPath, Driver);
                 NavigateToBaseUrl();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to setup test: {ex.Message}");
+                TestContext.Progress.WriteLine($"Failed to setup test: {ex.Message}");
                 throw;
             }
         }
@@ -68,31 +69,52 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             Driver.Navigate().GoToUrl(Config.BaseUrl);
         }
 
-        protected void CaptureStep(string stepDescription)
+        [TearDown]
+        public void Cleanup()
         {
-            TestReporter.CaptureStepScreen(stepDescription);
+            if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed)
+            {
+                TakeScreenshot();
+            }
         }
 
-        [TearDown]
-        public void TearDown()
+        protected string TakeScreenshot()
         {
             try
             {
-                if (TestContext.CurrentContext.Result.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed)
+                // Add a small delay to ensure page is fully rendered
+                Thread.Sleep(500); // 500ms delay
+
+                // Wait for page load
+                var jsExecutor = (IJavaScriptExecutor)Driver;
+                WebDriverWait wait = new WebDriverWait(Driver, TimeSpan.FromSeconds(10));
+                wait.Until(driver => jsExecutor.ExecuteScript("return document.readyState").Equals("complete"));
+
+                // Wait for jQuery if it exists
+                bool jQueryExists = (bool)jsExecutor.ExecuteScript("return typeof jQuery != 'undefined'");
+                if (jQueryExists)
                 {
-                    CaptureStep("Test Failed - Final State");
+                    wait.Until(driver => (bool)jsExecutor.ExecuteScript("return jQuery.active == 0"));
                 }
 
-                // Generate HTML report
-                TestReporter.GenerateHtmlReport();
+                // Scroll to top of page to ensure consistent screenshots
+                jsExecutor.ExecuteScript("window.scrollTo(0, 0);");
+
+                // Take the screenshot
+                var screenshot = ((ITakesScreenshot)Driver).GetScreenshot();
+                var fileName = $"{TestContext.CurrentContext.Test.Name}_{DateTime.Now:yyyyMMddHHmmss}.png";
+                var screenshotDir = Path.Combine(TestContext.CurrentContext.TestDirectory, "Screenshots");
+                Directory.CreateDirectory(screenshotDir);
+                var filePath = Path.Combine(screenshotDir, fileName);
+
+                screenshot.SaveAsFile(filePath);
+                TestContext.Progress.WriteLine($"Screenshot saved: {filePath}");
+                return filePath;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed in TearDown: {ex.Message}");
-            }
-            finally
-            {
-                Dispose();
+                TestContext.Progress.WriteLine($"Failed to capture screenshot: {ex.Message}");
+                return null;
             }
         }
 
@@ -105,10 +127,20 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to dispose driver: {ex.Message}");
+                TestContext.Progress.WriteLine($"Failed to dispose driver: {ex.Message}");
             }
+        }
 
-            // ... (rest of your existing code remains the same)
+        // Helper methods
+        protected void RefreshPage() => Driver.Navigate().Refresh();
+        protected void NavigateBack() => Driver.Navigate().Back();
+        protected void NavigateForward() => Driver.Navigate().Forward();
+        protected string GetCurrentUrl() => Driver.Url;
+        protected void ClearCookies() => Driver.Manage().Cookies.DeleteAllCookies();
+
+        protected void ExecuteJavaScript(string script, params object[] args)
+        {
+            ((IJavaScriptExecutor)Driver).ExecuteScript(script, args);
         }
     }
 }
