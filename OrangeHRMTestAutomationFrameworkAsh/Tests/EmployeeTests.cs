@@ -16,12 +16,12 @@ namespace OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base
     [TestFixture]
     public class EmployeeTests : TestBase
     {
-        private LoginPage _loginPage;
+        private new LoginPage _loginPage;
         private EmployeePage _employeePage;
         private EmployeeDataGenerator _dataGenerator;
 
         [SetUp]
-        public void Setup()
+        public new void Setup()
         {
             _loginPage = new LoginPage(Driver);
             _dataGenerator = new EmployeeDataGenerator();
@@ -30,6 +30,8 @@ namespace OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base
         }
 
         [Test]
+        [Category("Regression")]
+        [Property("TestCaseId", "12345")]  //Azure DevOps Test Case ID
         public void Should_Add_New_Employee_Successfully()
         {
             // Arrange
@@ -49,6 +51,8 @@ namespace OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base
         }
 
         [Test]
+        [Category("Regression")]
+        [Property("TestCaseId", "12346")]  //Azure DevOps Test Case ID
         public void Should_Search_Employee_Successfully()
         {
             // Arrange

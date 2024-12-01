@@ -21,6 +21,7 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             try
             {
                 TestReportGenerator.InitializeReport();
+
                 TestContext.Progress.WriteLine("Test suite setup completed");
             }
             catch (Exception ex)
@@ -56,8 +57,36 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             try
             {
                 var testResult = TestContext.CurrentContext.Result;
+                var testCaseId = TestContext.CurrentContext.Test.Properties.Get("TestCaseId")?.ToString();
+                var endTime = DateTime.Now;
                 var message = string.Empty;
                 var reportStatus = OrangeHRM.Automation.Framework.Helpers.TestReportGenerator.TestStatus.Failed; // Default to failed
+
+                // Create test result
+                //var result = new TestResult
+                //{
+                //    Outcome = testResult.Outcome.Status.ToString(),
+                //    Message = testResult.Message,
+                //    StartTime = _testStartTime,
+                //    EndTime = endTime,
+                //    Duration = (endTime - _testStartTime).TotalMilliseconds
+                //};
+
+                // Update Azure DevOps
+                //if (!string.IsNullOrEmpty(testCaseId))
+                //{
+                //    await _azureDevOpsReporter.UpdateTestCase(
+                //        testCaseId,
+                //        testResult.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Passed,
+                //        testResult.Message
+                //    );
+
+                //    await _azureDevOpsReporter.AddTestResult(
+                //        testCaseId,
+                //        result,
+                //        TestContext.CurrentContext.TestDirectory
+                //    );
+                //}
 
                 if (testResult.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Passed)
                 {
