@@ -1,41 +1,71 @@
 ﻿using AventStack.ExtentReports;
-using NUnit.Framework;
-using NUnit.Framework.Interfaces;
-using OpenQA.Selenium;
-using OrangeHRM.Automation.Framework.Helpers;
+using OrangeHRM.Automation.Framework.Core.Models;
 using OrangeHRM.Automation.Framework.PageObjects;
-using System;
-using System.IO;
-using static OrangeHRM.Automation.Framework.Helpers.TestReportGenerator;
+using OrangeHRM.Automation.Framework.Reporting;
 
 namespace OrangeHRM.Automation.Framework.Core.Base
 {
     public class TestBase : BaseTest
     {
-        protected DashboardPage _dashboardPage;
+        protected DashboardPage? _dashboardPage;
         protected LoginPage _loginPage;
+        protected static AzureDevOpsTestReporter _azureDevOpsReporter;
+        private DateTime _testStartTime;
+        private TestReportGenerator.TestStatus reportStatus;
+        private string? message;
 
         [OneTimeSetUp]
-        public void TestSuiteSetup()
+        public async Task TestSuiteSetup()
         {
             try
             {
                 TestReportGenerator.InitializeReport();
+
+                // Validate Azure DevOps settings
+                ValidateAzureDevOpsSettings();
+
+                // Initialize Azure DevOps reporter
+                _azureDevOpsReporter = new AzureDevOpsTestReporter(
+                    Config.Url,
+                    Config.PersonalAccessToken,
+                    Config.ProjectName
+                );
+
+                //Create a test run
+
+                await _azureDevOpsReporter.CreateTestRun(GetType().Name);
 
                 TestContext.Progress.WriteLine("Test suite setup completed");
             }
             catch (Exception ex)
             {
                 TestContext.Progress.WriteLine($"Failed to setup test suite: {ex.Message}");
+                TestContext.Progress.WriteLine($"Stack trace: {ex.StackTrace}");
                 throw;
             }
         }
+
+        private void ValidateAzureDevOpsSettings()
+        {
+            if (string.IsNullOrEmpty(Config.Url))
+                throw new InvalidOperationException("Azure DevOps URL is not configured in appsettings.json");
+
+            if (string.IsNullOrEmpty(Config.PersonalAccessToken))
+                throw new InvalidOperationException("Personal Access Token is not configured in appsettings.json");
+
+            if (string.IsNullOrEmpty(Config.ProjectName))
+                throw new InvalidOperationException("Project Name is not configured in appsettings.json");
+
+            TestContext.Progress.WriteLine("Azure DevOps settings validated successfully");
+        }
+
 
         [SetUp]
         public void TestSetup()
         {
             try
             {
+                _testStartTime = DateTime.Now;
                 var testName = TestContext.CurrentContext.Test.Name;
                 var testCaseId = TestContext.CurrentContext.Test.Properties.Get("TestCaseId")?.ToString();
                 var author = TestContext.CurrentContext.Test.Properties.Get("Author")?.ToString();
@@ -52,50 +82,50 @@ namespace OrangeHRM.Automation.Framework.Core.Base
         }
 
         [TearDown]
-        public void TestCleanup()
+        public async Task TestCleanup()
         {
             try
             {
                 var testResult = TestContext.CurrentContext.Result;
                 var testCaseId = TestContext.CurrentContext.Test.Properties.Get("TestCaseId")?.ToString();
                 var endTime = DateTime.Now;
-                var message = string.Empty;
-                var reportStatus = OrangeHRM.Automation.Framework.Helpers.TestReportGenerator.TestStatus.Failed; // Default to failed
+                //var message = string.Empty;
+                //var reportStatus = OrangeHRM.Automation.Framework.Helpers.TestReportGenerator.TestStatus.Failed; // Default to failed
 
                 // Create test result
-                //var result = new TestResult
-                //{
-                //    Outcome = testResult.Outcome.Status.ToString(),
-                //    Message = testResult.Message,
-                //    StartTime = _testStartTime,
-                //    EndTime = endTime,
-                //    Duration = (endTime - _testStartTime).TotalMilliseconds
-                //};
+                var result = new TestResult
+                {
+                      Outcome = testResult.Outcome.Status.ToString(),
+                      Message = testResult.Message,
+                      StartTime = _testStartTime,
+                      EndTime = endTime,
+                      Duration = (endTime - _testStartTime).TotalMilliseconds
+                };
 
                 // Update Azure DevOps
-                //if (!string.IsNullOrEmpty(testCaseId))
-                //{
-                //    await _azureDevOpsReporter.UpdateTestCase(
-                //        testCaseId,
-                //        testResult.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Passed,
-                //        testResult.Message
-                //    );
+                if (!string.IsNullOrEmpty(testCaseId))
+                {
+                    await _azureDevOpsReporter.UpdateTestCase(
+                        testCaseId,
+                        testResult.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Passed,
+                        testResult.Message
+                    );
 
-                //    await _azureDevOpsReporter.AddTestResult(
-                //        testCaseId,
-                //        result,
-                //        TestContext.CurrentContext.TestDirectory
-                //    );
-                //}
+                    await _azureDevOpsReporter.AddTestResult(
+                        testCaseId,
+                        result,
+                        TestContext.CurrentContext.TestDirectory
+                    );
+                }
 
                 if (testResult.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Passed)
                 {
-                    reportStatus = OrangeHRM.Automation.Framework.Helpers.TestReportGenerator.TestStatus.Passed;
+                    reportStatus = TestReportGenerator.TestStatus.Passed;
                     message = "Test executed successfully";
                 }
                 else if (testResult.Outcome.Status == NUnit.Framework.Interfaces.TestStatus.Failed)
                 {
-                    reportStatus = OrangeHRM.Automation.Framework.Helpers.TestReportGenerator.TestStatus.Failed;
+                    reportStatus = TestReportGenerator.TestStatus.Failed;
                     message = $"Test failed: {testResult.Message}\n";
                     if (testResult.StackTrace != null)
                     {
@@ -109,7 +139,7 @@ namespace OrangeHRM.Automation.Framework.Core.Base
                 }
                 else
                 {
-                    reportStatus = OrangeHRM.Automation.Framework.Helpers.TestReportGenerator.TestStatus.Skipped;
+                    reportStatus = TestReportGenerator.TestStatus.Skipped;
                     message = $"Test was skipped: {testResult.Message}";
                 }
 

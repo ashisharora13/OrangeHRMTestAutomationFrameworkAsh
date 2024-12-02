@@ -27,5 +27,10 @@ namespace OrangeHRM.Automation.Framework.Core.Configuration
         public string BaseUrl => _appSettings.BaseUrl;
         public string AdminUsername => _appSettings.AdminUsername;
         public string AdminPassword => _appSettings.AdminPassword;
+
+        //New AzureDevOps properties
+        public string Url => _appSettings.AzureDevOps.Url;
+        public string PersonalAccessToken => _appSettings.AzureDevOps.PersonalAccessToken;
+        public string ProjectName => _appSettings.AzureDevOps.ProjectName;
     }
 }

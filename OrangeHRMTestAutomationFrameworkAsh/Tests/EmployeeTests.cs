@@ -1,15 +1,14 @@
 ﻿using AventStack.ExtentReports;
 using OrangeHRM.Automation.Framework.Core.Base;
-using OrangeHRM.Automation.Framework.Helpers;
 using OrangeHRM.Automation.Framework.PageObjects;
 using OrangeHRM.Automation.Framework.TestData;
+using OrangeHRM.Automation.Framework.Reporting;
 using OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static OrangeHRM.Automation.Framework.Helpers.TestReportGenerator;
 
 namespace OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base
 {

@@ -1,9 +1,8 @@
 ﻿using NUnit.Framework;
 using OrangeHRM.Automation.Framework.Core.Base;
 using OrangeHRM.Automation.Framework.PageObjects;
-using OrangeHRM.Automation.Framework.Helpers;
 using AventStack.ExtentReports;
-using static OrangeHRM.Automation.Framework.Helpers.TestReportGenerator;
+using OrangeHRM.Automation.Framework.Reporting;
 
 namespace OrangeHRM.Automation.Framework.Tests
 {
@@ -25,7 +24,7 @@ namespace OrangeHRM.Automation.Framework.Tests
         [Category("Regression")]
         [Description("Verify user can successfully login with valid credentials")]
         [Author("Ashish Arora")]
-        [Property("TestCaseId", "TC_LOGIN_001")]
+        [Property("TestCaseId", "3")]
         public void Should_Login_Successfully_With_Valid_Credentials()
         {
             try
@@ -69,7 +68,7 @@ namespace OrangeHRM.Automation.Framework.Tests
         [Category("Regression")]
         [Description("Verify system shows error message for invalid credentials")]
         [Author("YourName")]
-        [Property("TestCaseId", "TC_LOGIN_002")]
+        [Property("TestCaseId", "7")]
         public void Should_Show_Error_Message_With_Invalid_Credentials()
         {
             try

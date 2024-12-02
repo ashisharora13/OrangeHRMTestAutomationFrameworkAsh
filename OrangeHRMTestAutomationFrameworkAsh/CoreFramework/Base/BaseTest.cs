@@ -78,7 +78,7 @@ namespace OrangeHRM.Automation.Framework.Core.Base
             }
         }
 
-        protected string TakeScreenshot()
+        protected string? TakeScreenshot()
         {
             try
             {

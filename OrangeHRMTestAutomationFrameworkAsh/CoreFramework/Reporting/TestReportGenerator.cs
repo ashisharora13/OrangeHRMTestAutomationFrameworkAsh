@@ -5,7 +5,7 @@ using AventStack.ExtentReports;
 using AventStack.ExtentReports.Reporter;
 using AventStack.ExtentReports.Reporter.Config;
 
-namespace OrangeHRM.Automation.Framework.Helpers
+namespace OrangeHRM.Automation.Framework.Reporting
 {
     public class TestReportGenerator
     {

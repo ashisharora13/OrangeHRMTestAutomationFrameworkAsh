@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Configuration;
 
 namespace OrangeHRM.Automation.Framework.Core.Configuration
 {
@@ -9,6 +10,8 @@ namespace OrangeHRM.Automation.Framework.Core.Configuration
         public string AdminUsername { get; set; } = "Admin";
         public string AdminPassword { get; set; } = "admin123";
         public int DefaultTimeout { get; set; } = 30;
+        public AzureDevOpsSettings AzureDevOps { get; set; } = new AzureDevOpsSettings();
+
     }
 }
 

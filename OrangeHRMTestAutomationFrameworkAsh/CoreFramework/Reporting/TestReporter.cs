@@ -1,7 +1,7 @@
 ﻿using OpenQA.Selenium;
 using System.Text;
 
-namespace OrangeHRM.Automation.Framework.Core.Reporting
+namespace OrangeHRM.Automation.Framework.Reporting
 {
     public class TestReporter
     {
