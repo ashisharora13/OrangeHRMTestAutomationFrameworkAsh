@@ -28,69 +28,101 @@ using Microsoft.TeamFoundation.Dashboards.WebApi;
 using OpenQA.Selenium.Support.UI;
 using OpenQA.Selenium;
 using static OpenQA.Selenium.BiDi.Modules.Script.RemoteValue;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace OrangeHRMTestAutomationFrameworkAsh
 {
     internal class Flowchart
     {
     //flowchart TB
-    //Start([Framework Start]) --> Core[Core Components]
+    //Start([Framework Start]) --> CICD[CI / CD Pipeline Trigger]
+    //CICD --> Init[Initialize Framework]
 
-    //Core --> Base[Base Classes]
-    //Core --> Browser[Browser Factory]
-    //Core --> Config[Configuration]
-    //Core --> Helpers[Helper Classes]
+    //subgraph Core[Core Components]
+    //    Init --> Base[Base Layer Setup]
+    //    Base --> BaseTest[BaseTest Setup]
+    //    Base --> TestBase[TestBase Setup]
+    //    Base --> BasePage[BasePage Setup]
 
-    //Base --> BasePage[BasePage]
-    //Base --> BaseTest[BaseTest]
-    //    Base --> TestBase[TestBase]
+    //    BaseTest --> Browser[Browser Factory]
+    //    Browser --> Driver[WebDriver Setup]
+    //    Browser --> Config[Configuration Manager]
 
-    //Browser --> BFactory[BrowserFactory]
-    //Browser --> WDriver[WebDriver Setup]
+    //    Config --> Settings[Load AppSettings]
+    //    Settings --> EnvConfig[Environment Config]
+    //    Settings --> BrowserConfig[Browser Config]
+    //    Settings --> AzureConfig[Azure DevOps Config]
 
-    //Config --> CManager[ConfigurationManager]
-    //Config --> Settings[AppSettings]
-
-    //Helpers --> Wait[Wait Utilities]
-    //Helpers --> Element[Element Actions]
+    //    BaseTest --> Helpers[Initialize Helpers]
+    //    Helpers --> Wait[Wait Helper]
+    //    Helpers --> Element[Element Helper]
+    //end
 
     //Core --> Framework[Framework Components]
 
-    //Framework --> Pages[Page Objects]
-    //Framework --> Data[Test Data]
-    //Framework --> Report[Reporting]
+    //subgraph Framework_Components[Framework Layer]
+    //    Framework --> Pages[Initialize Page Objects]
+    //    Pages --> Login[Login Page]
+    //    Pages --> Dashboard[Dashboard Page]
+    //    Pages --> Employee[Employee Page]
 
-    //Pages --> Login[LoginPage]
-    //Pages --> Dashboard[DashboardPage]
-    //Pages --> Employee[EmployeePage]
+    //    Framework --> Data[Test Data Setup]
+    //    Data --> Generator[Data Generators]
+    //    Data --> Models[Data Models]
 
-    //Data --> Generator[Data Generators]
-    //Data --> Models[Data Models]
+    //    Framework --> Report[Initialize Reporting]
+    //    Report --> Extent[Extent Reports]
+    //    Report --> Azure[Azure DevOps Reporter]
+    //end
 
-    //Report --> Extent[Extent Reports]
-    //Report --> Azure[Azure DevOps]
+    //Framework_Components --> TestExec[Test Execution]
 
-    //Framework --> Tests[Test Execution]
+    //subgraph Test_Flow[Test Execution Flow]
+    //    TestExec --> TestSetup[Test Setup]
+    //    TestSetup --> PageInit[Initialize Page Objects]
+    //    PageInit --> TestSteps[Execute Test Steps]
 
-    //Tests --> Setup[Test Setup]
-    //Tests --> Execute[Test Steps]
-    //Tests --> Assert[Assertions]
-    //Tests --> Results[Test Results]
+    //    TestSteps -->|Success| Pass[Test Passed]
+    //    TestSteps -->|Failure| Fail[Test Failed]
 
-    //Tests --> Pipeline[CI / CD Pipeline]
+    //    Pass --> Screenshot1[Capture Success Screenshot]
+    //    Fail --> Screenshot2[Capture Failure Screenshot]
 
-    //Pipeline --> Build[Build]
-    //Pipeline --> Run[Test Run]
-    //Pipeline --> Publish[Publish Results]
+    //    Screenshot1 --> Report1[Update Reports]
+    //    Screenshot2 --> Report2[Update Reports]
 
-    //classDef default fill:#f9f,stroke:#333,stroke-width:1px
-    //classDef framework fill:#bbf,stroke:#333,stroke-width:1px
-    //classDef execution fill:#bfb,stroke:#333,stroke-width:1px
-    //classDef pipeline fill:#fbb,stroke:#333,stroke-width:1px
-    
-    //class Core,Base,Browser,Config,Helpers default
-    //class Framework,Pages,Data,Report framework
-    //class Tests,Setup,Execute,Assert,Results execution
-    //class Pipeline,Build,Run,Publish pipeline
+    //    Report1 --> Azure1[Update Azure DevOps]
+    //    Report2 --> Azure2[Update Azure DevOps]
+    //end
+
+    //subgraph Report_System[Reporting System]
+    //    Report1 --> ExtentReport1[Update Extent Report]
+    //    Report2 --> ExtentReport2[Update Extent Report]
+    //    Azure1 --> TestCase1[Update Test Case]
+    //    Azure2 --> TestCase2[Update Test Case]
+    //end
+
+    //subgraph Pipeline[CI / CD Pipeline]
+    //    Report_System --> Build[Build Solution]
+    //    Build --> RunTest[Execute Tests]
+    //    RunTest --> Publish[Publish Results]
+    //    Publish --> Deploy[Deploy Reports]
+    //end
+
+    //Pipeline --> Cleanup[Resource Cleanup]
+    //Cleanup --> End([Framework End])
+
+    //style Core fill:#f9f,stroke:#333,stroke-width:2px
+    //style Framework_Components fill:#bbf,stroke:#333,stroke-width:2px
+    //style Test_Flow fill:#bfb,stroke:#333,stroke-width:2px
+    //style Report_System fill:#fbb,stroke:#333,stroke-width:2px
+    //style Pipeline fill:#ff9,stroke:#333,stroke-width:2px
+
+    //classDef success fill:#0f0,stroke:#333,stroke-width:2px
+    //classDef failure fill:#f00,stroke:#333,stroke-width:2px
+    //classDef component fill:#ddd,stroke:#333,stroke-width:1px
+    //class Pass success
+    //class Fail failure
+    //class Init,Framework,TestExec,Cleanup component
     }
 }
