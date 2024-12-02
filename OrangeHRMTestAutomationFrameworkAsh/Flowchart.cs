@@ -23,135 +23,74 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using static Microsoft.Azure.Pipelines.WebApi.PipelinesResources;
+using Microsoft.Azure.Pipelines.WebApi;
+using Microsoft.TeamFoundation.Dashboards.WebApi;
+using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium;
+using static OpenQA.Selenium.BiDi.Modules.Script.RemoteValue;
 
 namespace OrangeHRMTestAutomationFrameworkAsh
 {
     internal class Flowchart
     {
-    //    flowchart TB
-    //Start([Framework Start]) --> CICD{CI/CD Pipeline}
+    //flowchart TB
+    //Start([Framework Start]) --> Core[Core Components]
 
-    //subgraph Core_Components[Core Components]
-    //    direction TB
-    //    subgraph Base[Base Classes]
-    //        BaseTest[BaseTest.cs]
-    //        TestBase[TestBase.cs]
-    //        BasePage[BasePage.cs]
-    //    end
+    //Core --> Base[Base Classes]
+    //Core --> Browser[Browser Factory]
+    //Core --> Config[Configuration]
+    //Core --> Helpers[Helper Classes]
 
+    //Base --> BasePage[BasePage]
+    //Base --> BaseTest[BaseTest]
+    //    Base --> TestBase[TestBase]
 
-    //    subgraph Browser[Browser Factory]
-    //        BrowserFactory[BrowserFactory.cs]
-    //        Driver[WebDriver Setup]
-    //        BrowserConfig[Browser Configurations]
-    //    end
+    //Browser --> BFactory[BrowserFactory]
+    //Browser --> WDriver[WebDriver Setup]
 
+    //Config --> CManager[ConfigurationManager]
+    //Config --> Settings[AppSettings]
 
-    //    subgraph Config[Configuration]
-    //        ConfigManager[ConfigurationManager.cs]
-    //        AppSettings[AppSettings.json]
-    //        EnvConfig[Environment Config]
-    //    end
+    //Helpers --> Wait[Wait Utilities]
+    //Helpers --> Element[Element Actions]
 
+    //Core --> Framework[Framework Components]
 
-    //    subgraph Helpers[Helper Classes]
-    //        WaitHelper[Wait Utilities]
-    //        ElementHelper[Element Actions]
-    //        CommonUtils[Common Utilities]
-    //    end
-    //end
+    //Framework --> Pages[Page Objects]
+    //Framework --> Data[Test Data]
+    //Framework --> Report[Reporting]
 
-    //subgraph Framework_Components[Framework Components]
-    //    direction TB
-    //    subgraph Pages[Page Objects]
-    //        LoginPage[Login Page]
-    //        DashboardPage[Dashboard Page]
-    //        EmployeePage[Employee Page]
-    //        LeavePage[Leave Page]
-    //    end
+    //Pages --> Login[LoginPage]
+    //Pages --> Dashboard[DashboardPage]
+    //Pages --> Employee[EmployeePage]
 
+    //Data --> Generator[Data Generators]
+    //Data --> Models[Data Models]
 
-    //    subgraph TestData[Test Data]
-    //        DataGen[Data Generators]
-    //        TestModels[Data Models]
-    //        DataProvider[Data Providers]
-    //    end
+    //Report --> Extent[Extent Reports]
+    //Report --> Azure[Azure DevOps]
 
+    //Framework --> Tests[Test Execution]
 
-    //    subgraph Reports[Reporting System]
-    //        ExtentReport[Extent Reports]
-    //        AzureReport[Azure DevOps]
-    //        Screenshots[Screenshot Manager]
-    //end
-    //end
+    //Tests --> Setup[Test Setup]
+    //Tests --> Execute[Test Steps]
+    //Tests --> Assert[Assertions]
+    //Tests --> Results[Test Results]
 
-    //subgraph Test_Execution[Test Execution]
-    //    direction TB
-    //    TestInit[Test Initialization]
-    //    TestSteps[Test Steps]
-    //    Assertions[Assertions & Logging]
-    //    Results[Test Results]
-    //end
+    //Tests --> Pipeline[CI / CD Pipeline]
 
+    //Pipeline --> Build[Build]
+    //Pipeline --> Run[Test Run]
+    //Pipeline --> Publish[Publish Results]
 
-    //subgraph Pipeline[CI / CD Pipeline]
-    //    direction TB
-    //    Build[Build Solution]
-    //    TestRun[Run Tests]
-    //    PublishResults[Publish Results]
-    //    DeployReport[Deploy Reports]
-    //end
-
-    //%% Connections
-    //CICD -->|Trigger| Core_Components
-    //Core_Components -->|Initialize| Framework_Components
-    //Framework_Components -->|Use| Test_Execution
-    //Test_Execution -->|Generate| Reports
-    //Test_Execution -->|Update| Pipeline
+    //classDef default fill:#f9f,stroke:#333,stroke-width:1px
+    //classDef framework fill:#bbf,stroke:#333,stroke-width:1px
+    //classDef execution fill:#bfb,stroke:#333,stroke-width:1px
+    //classDef pipeline fill:#fbb,stroke:#333,stroke-width:1px
     
-    //%% Base Connections
-    //BaseTest -->|Extends| TestBase
-    //BasePage -->|Used by| Pages
-    
-    //%% Browser Connections
-    //BrowserFactory -->|Creates| Driver
-    //Driver -->|Used by| BaseTest
-    
-    //%% Config Connections
-    //ConfigManager -->|Reads| AppSettings
-    //ConfigManager -->|Used by| BaseTest
-    
-    //%% Helper Connections
-    //WaitHelper -->|Used by| BasePage
-    //ElementHelper -->|Used by| BasePage
-    
-    //%% Page Connections
-    //Pages -->|Used by| Test_Execution
-    
-    //%% Data Connections
-    //TestData -->|Provides| Test_Execution
-    
-    //%% Report Connections
-    //Reports -->|Updates| Pipeline
-    
-    //%% Styling
-    //classDef coreStyle fill:#f9f,stroke:#333,stroke-width:2px;
-    //classDef frameworkStyle fill:#bbf,stroke:#333,stroke-width:2px;
-    //classDef execStyle fill:#bfb,stroke:#333,stroke-width:2px;
-    //classDef pipelineStyle fill:#fbb,stroke:#333,stroke-width:2px;
-    
-    //class Core_Components coreStyle;
-    //class Framework_Components frameworkStyle;
-    //class Test_Execution execStyle;
-    //class Pipeline pipelineStyle;
-    
-    //%% Subgraph Styling
-    //style Base fill:#f9f9f9,stroke:#999,stroke-width:2px;
-    //style Browser fill:#f9f9f9,stroke:#999,stroke-width:2px;
-    //style Config fill:#f9f9f9,stroke:#999,stroke-width:2px;
-    //style Helpers fill:#f9f9f9,stroke:#999,stroke-width:2px;
-    //style Pages fill:#e6f3ff,stroke:#999,stroke-width:2px;
-    //style TestData fill:#e6f3ff,stroke:#999,stroke-width:2px;
-    //style Reports fill:#e6f3ff,stroke:#999,stroke-width:2px;
+    //class Core,Base,Browser,Config,Helpers default
+    //class Framework,Pages,Data,Report framework
+    //class Tests,Setup,Execute,Assert,Results execution
+    //class Pipeline,Build,Run,Publish pipeline
     }
 }
