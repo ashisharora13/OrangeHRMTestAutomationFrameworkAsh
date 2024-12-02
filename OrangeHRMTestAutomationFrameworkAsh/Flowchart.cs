@@ -1,6 +1,20 @@
-﻿using AventStack.ExtentReports.Model;
+﻿using AventStack.ExtentReports.Gherkin.Model;
+using AventStack.ExtentReports;
+using AventStack.ExtentReports.Model;
+using Microsoft.TeamFoundation.Build.WebApi;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
+using Microsoft.TeamFoundation.WorkItemTracking.Process.WebApi.Models;
+using Microsoft.VisualStudio.Services.TestManagement.TestPlanning.WebApi;
+using Microsoft.VisualStudio.Services.Users;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
+using OpenQA.Selenium.BiDi.Communication;
+using OrangeHRM.Automation.Framework.Core.Base;
+using OrangeHRM.Automation.Framework.Core.Browser;
+using OrangeHRM.Automation.Framework.Core.Configuration;
+using OrangeHRM.Automation.Framework.Core.Helpers;
+using OrangeHRM.Automation.Framework.PageObjects;
 using OrangeHRM.Automation.Framework.Reporting;
+using OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,72 +22,136 @@ using System.Reactive;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.Azure.Pipelines.WebApi.PipelinesResources;
 
 namespace OrangeHRMTestAutomationFrameworkAsh
 {
     internal class Flowchart
     {
     //    flowchart TB
-    //Start([Test Execution Start]) --> Config[Load Configuration]
-    //Config --> Init[Initialize Framework]
+    //Start([Framework Start]) --> CICD{CI/CD Pipeline}
 
-    //subgraph Framework_Init[Framework Initialization]
-    //    Init --> Driver[Create WebDriver]
-    //    Init --> Reports[Initialize Reports]
-    //    Init --> Azure[Setup Azure DevOps]
+    //subgraph Core_Components[Core Components]
+    //    direction TB
+    //    subgraph Base[Base Classes]
+    //        BaseTest[BaseTest.cs]
+    //        TestBase[TestBase.cs]
+    //        BasePage[BasePage.cs]
+    //    end
+
+
+    //    subgraph Browser[Browser Factory]
+    //        BrowserFactory[BrowserFactory.cs]
+    //        Driver[WebDriver Setup]
+    //        BrowserConfig[Browser Configurations]
+    //    end
+
+
+    //    subgraph Config[Configuration]
+    //        ConfigManager[ConfigurationManager.cs]
+    //        AppSettings[AppSettings.json]
+    //        EnvConfig[Environment Config]
+    //    end
+
+
+    //    subgraph Helpers[Helper Classes]
+    //        WaitHelper[Wait Utilities]
+    //        ElementHelper[Element Actions]
+    //        CommonUtils[Common Utilities]
+    //    end
+    //end
+
+    //subgraph Framework_Components[Framework Components]
+    //    direction TB
+    //    subgraph Pages[Page Objects]
+    //        LoginPage[Login Page]
+    //        DashboardPage[Dashboard Page]
+    //        EmployeePage[Employee Page]
+    //        LeavePage[Leave Page]
+    //    end
+
+
+    //    subgraph TestData[Test Data]
+    //        DataGen[Data Generators]
+    //        TestModels[Data Models]
+    //        DataProvider[Data Providers]
+    //    end
+
+
+    //    subgraph Reports[Reporting System]
+    //        ExtentReport[Extent Reports]
+    //        AzureReport[Azure DevOps]
+    //        Screenshots[Screenshot Manager]
+    //end
+    //end
+
+    //subgraph Test_Execution[Test Execution]
+    //    direction TB
+    //    TestInit[Test Initialization]
+    //    TestSteps[Test Steps]
+    //    Assertions[Assertions & Logging]
+    //    Results[Test Results]
     //end
 
 
-    //Framework_Init --> TestExec[Test Execution]
-
-    //subgraph Test_Execution[Test Execution Flow]
-    //    TestExec --> TestSetup[Test Setup]
-    //    TestSetup --> PageInit[Initialize Page Objects]
-    //    PageInit --> TestSteps[Execute Test Steps]
-
-    //    TestSteps -->|Success| Pass[Test Passed]
-    //    TestSteps --> |Failure| Fail[Test Failed]
-
-    //    Pass --> Screenshot1[Capture Success Screenshot]
-    //    Fail --> Screenshot2[Capture Failure Screenshot]
-
-    //    Screenshot1 --> Report1[Update Reports]
-    //    Screenshot2 --> Report2[Update Reports]
-
-    //    Report1 --> Azure1[Update Azure DevOps]
-    //    Report2 --> Azure2[Update Azure DevOps]
+    //subgraph Pipeline[CI / CD Pipeline]
+    //    direction TB
+    //    Build[Build Solution]
+    //    TestRun[Run Tests]
+    //    PublishResults[Publish Results]
+    //    DeployReport[Deploy Reports]
     //end
 
-
-    //subgraph Reporting[Reporting System]
-    //    Report1 --> Extent1[Extent Report]
-    //    Report2 --> Extent2[Extent Report]
-    //    Azure1 --> TestCase1[Update Test Case]
-    //    Azure2 --> TestCase2[Update Test Case]
-    //end
-
-
-    //subgraph Cleanup[Test Cleanup]
-    //    Extent1 --> Cleanup1[Cleanup Resources]
-    //    Extent2 --> Cleanup1
-    //    TestCase1 --> Cleanup1
-    //    TestCase2 --> Cleanup1
-    //    Cleanup1 --> Driver2[Close Driver]
-    //end
-
-
-    //Cleanup --> FinalReport[Generate Final Report]
-    //FinalReport --> End([Test Execution End])
-
-
-    //style Framework_Init fill:#f9f,stroke:#333,stroke-width:2px
-    //style Test_Execution fill:#bbf,stroke:#333,stroke-width:2px
-    //style Reporting fill:#bfb,stroke:#333,stroke-width:2px
-    //style Cleanup fill:#fbb,stroke:#333,stroke-width:2px
+    //%% Connections
+    //CICD -->|Trigger| Core_Components
+    //Core_Components -->|Initialize| Framework_Components
+    //Framework_Components -->|Use| Test_Execution
+    //Test_Execution -->|Generate| Reports
+    //Test_Execution -->|Update| Pipeline
     
-    //classDef success fill:#0f0,stroke:#333,stroke-width:2px;
-    //classDef failure fill:#f00,stroke:#333,stroke-width:2px;
-    //class Pass success;
-    //class Fail failure;
+    //%% Base Connections
+    //BaseTest -->|Extends| TestBase
+    //BasePage -->|Used by| Pages
+    
+    //%% Browser Connections
+    //BrowserFactory -->|Creates| Driver
+    //Driver -->|Used by| BaseTest
+    
+    //%% Config Connections
+    //ConfigManager -->|Reads| AppSettings
+    //ConfigManager -->|Used by| BaseTest
+    
+    //%% Helper Connections
+    //WaitHelper -->|Used by| BasePage
+    //ElementHelper -->|Used by| BasePage
+    
+    //%% Page Connections
+    //Pages -->|Used by| Test_Execution
+    
+    //%% Data Connections
+    //TestData -->|Provides| Test_Execution
+    
+    //%% Report Connections
+    //Reports -->|Updates| Pipeline
+    
+    //%% Styling
+    //classDef coreStyle fill:#f9f,stroke:#333,stroke-width:2px;
+    //classDef frameworkStyle fill:#bbf,stroke:#333,stroke-width:2px;
+    //classDef execStyle fill:#bfb,stroke:#333,stroke-width:2px;
+    //classDef pipelineStyle fill:#fbb,stroke:#333,stroke-width:2px;
+    
+    //class Core_Components coreStyle;
+    //class Framework_Components frameworkStyle;
+    //class Test_Execution execStyle;
+    //class Pipeline pipelineStyle;
+    
+    //%% Subgraph Styling
+    //style Base fill:#f9f9f9,stroke:#999,stroke-width:2px;
+    //style Browser fill:#f9f9f9,stroke:#999,stroke-width:2px;
+    //style Config fill:#f9f9f9,stroke:#999,stroke-width:2px;
+    //style Helpers fill:#f9f9f9,stroke:#999,stroke-width:2px;
+    //style Pages fill:#e6f3ff,stroke:#999,stroke-width:2px;
+    //style TestData fill:#e6f3ff,stroke:#999,stroke-width:2px;
+    //style Reports fill:#e6f3ff,stroke:#999,stroke-width:2px;
     }
 }
