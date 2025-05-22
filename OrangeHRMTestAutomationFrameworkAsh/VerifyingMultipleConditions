@@ -1,0 +1,44 @@
+public bool VerifyAllConditionsWithLogging(List<bool> conditions, List<string> conditionNames = null)
+{
+    bool allPassed = true;
+    
+    for (int i = 0; i < conditions.Count; i++)
+    {
+        string conditionName = conditionNames?[i] ?? $"Condition {i + 1}";
+        
+        if (!conditions[i])
+        {
+            Console.WriteLine($"❌ {conditionName} failed");
+            allPassed = false;
+        }
+        else
+        {
+            Console.WriteLine($"✅ {conditionName} passed");
+        }
+    }
+    
+    Console.WriteLine($"Overall result: {(allPassed ? "PASS" : "FAIL")}");
+    return allPassed;
+}
+
+// Usage
+public bool ValidateFormWithLogging()
+{
+    var conditions = new List<bool>
+    {
+        VerifyTextEntered(nameTextBox, expectedName),
+        VerifyTextEntered(emailTextBox, expectedEmail),
+        VerifyTextEntered(phoneTextBox, expectedPhone),
+        VerifyDropdownSelection(countryDropdown, expectedCountry)
+    };
+    
+    var conditionNames = new List<string>
+    {
+        "Name validation",
+        "Email validation", 
+        "Phone validation",
+        "Country selection"
+    };
+    
+    return VerifyAllConditionsWithLogging(conditions, conditionNames);
+}
