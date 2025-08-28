@@ -1,4 +1,6 @@
-﻿using OrangeHRM.Automation.Framework.Core.Base;
+﻿using AventStack.ExtentReports;
+using OrangeHRM.Automation.Framework.Core.Base;
+using OrangeHRM.Automation.Framework.Helpers;
 using OrangeHRM.Automation.Framework.PageObjects;
 using OrangeHRM.Automation.Framework.TestData;
 using OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base;
@@ -7,18 +9,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static OrangeHRM.Automation.Framework.Helpers.TestReportGenerator;
 
 namespace OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base
 {
     [TestFixture]
-    public class EmployeeTests : BaseTest
+    public class EmployeeTests : TestBase
     {
-        private LoginPage _loginPage;
+        private new LoginPage _loginPage;
         private EmployeePage _employeePage;
         private EmployeeDataGenerator _dataGenerator;
 
         [SetUp]
-        public void Setup()
+        public new void Setup()
         {
             _loginPage = new LoginPage(Driver);
             _dataGenerator = new EmployeeDataGenerator();
@@ -27,32 +30,46 @@ namespace OrangeHRMTestAutomationFrameworkAsh.CoreFramework.Base
         }
 
         [Test]
+        [Category("Regression")]
+        [Property("TestCaseId", "12345")]  //Azure DevOps Test Case ID
         public void Should_Add_New_Employee_Successfully()
         {
             // Arrange
+            LogInfo("Preparing the test data");
             var employee = _dataGenerator.GenerateEmployee();
 
             // Act
+            LogTestStep("Add New Employee", "Adding a new employee to OrangeHRM", Status.Info);
             _employeePage.AddNewEmployee(employee.FirstName, employee.LastName, employee.EmployeeId);
 
             // Assert
-            Assert.That(_employeePage.IsEmployeeCreated($"{employee.FirstName} {employee.LastName}"),
-                Is.True, "Employee should be created successfully");
+            //Assert.That(_employeePage.IsEmployeeCreated($"{employee.FirstName} {employee.LastName}"),
+            //  Is.True, "Employee should be created successfully");
+            AssertAndLog(
+            () => Assert.That(_employeePage.IsEmployeeCreated(employee.FirstName,employee.LastName), Is.True),
+            "Employee should be created successfully");
         }
 
         [Test]
+        [Category("Regression")]
+        [Property("TestCaseId", "12346")]  //Azure DevOps Test Case ID
         public void Should_Search_Employee_Successfully()
         {
             // Arrange
+            LogInfo("Preparing the test data");
             var employee = _dataGenerator.GenerateEmployee();
+            LogTestStep("Add New Employee", "Adding a new employee to OrangeHRM", Status.Info);
             _employeePage.AddNewEmployee(employee.FirstName, employee.LastName, employee.EmployeeId);
 
             // Act
+            LogTestStep("Search Employee", "Searching a new employee within OrangeHRM", Status.Info);
             _employeePage.SearchEmployee(employee.FirstName);
+            _employeePage.ClickOnEmpRecordCreated(employee.FirstName);
 
             // Assert
-            Assert.That(_employeePage.IsEmployeeCreated($"{employee.FirstName} {employee.LastName}"),
-                Is.True, "Employee should be found in search results");
+            AssertAndLog(
+            () => Assert.That(_employeePage.IsEmployeeCreated(employee.FirstName,employee.LastName),
+                Is.True), "Employee should be found in search results");
         }
     }
 }

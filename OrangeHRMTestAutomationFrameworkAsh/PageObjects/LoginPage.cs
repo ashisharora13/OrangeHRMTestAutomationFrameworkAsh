@@ -8,7 +8,7 @@ namespace OrangeHRM.Automation.Framework.PageObjects
         private readonly By _usernameInput = By.Name("username");
         private readonly By _passwordInput = By.Name("password");
         private readonly By _loginButton = By.CssSelector("button[type='submit']");
-        private readonly By _errorMessage = By.CssSelector(".alert-content-text");
+        private readonly By _errorMessage = By.CssSelector(".oxd-text.oxd-text--p.oxd-alert-content-text");
 
         public LoginPage(IWebDriver driver) : base(driver) { }
 
